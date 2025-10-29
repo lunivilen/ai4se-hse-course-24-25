@@ -1,9 +1,9 @@
-from data_prepair.const_variables import CONTRACTION_MAPPING, RE_URL, RE_REPEATS, RE_SPECIALS
+from data_prepair.const_variables import CONTRACTION_MAPPING, RE_URL, RE_REPEATS, RE_SPECIALS, RE_PATTERNS
 import unicodedata
 import re
 
 
-def expand_contraction(text: str):
+def expand_contraction(text: str) -> str:
     """Расшифровывает сокращения"""
     specials = ["’", "‘", "´", "`", "'"]
 
@@ -19,6 +19,13 @@ def normalize_unicode(text: str) -> str:
     return ''.join(ch for ch in s if not unicodedata.category(ch).startswith('C'))
 
 
+def fix_bad_words(text: str) -> str:
+    for target, patterns in RE_PATTERNS.items():
+        for pat in patterns:
+            text = text.replace(pat, target)
+    return text
+
+
 def clean_one(message: str) -> str:
     """Очищает одну запись"""
     message = normalize_unicode(message.lower())
@@ -31,6 +38,9 @@ def clean_one(message: str) -> str:
 
     # раскрытие сокращений
     message = expand_contraction(message)
+
+    # исправление специально исправленных плохих слов
+    message = fix_bad_words(message)
 
     # удаление повторяющихся символов
     message = RE_REPEATS.sub(r'\1', message)
